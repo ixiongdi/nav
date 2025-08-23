@@ -1,0 +1,25 @@
+# 忽略目录
+node_modules/
+dist/
+build/
+.idea/
+.vscode/
+public/
+
+# 忽略文件类型
+*.log
+*.md
+*.svg
+*.ico
+*.toml
+*.lock
+*.json
+
+# 特定文件
+package.json
+package-lock.json
+tsconfig.json
+vite.config.ts
+
+# 已经被其他工具格式化的文件
+*.d.ts
