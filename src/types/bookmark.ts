@@ -1,132 +1,49 @@
-/**
- * 表示一个书签条目（可以是链接或文件夹）
- */
-interface BookmarkNode {
-  // 公共字段
-  addDate?: number; // ADD_DATE: Unix 时间戳（秒）
-  lastModified?: number; // LAST_MODIFIED: Unix 时间戳（秒）
-  type: 'link' | 'folder'; // 节点类型
-  title: string; // 标题（链接显示标题或文件夹名称）
-}
+// 书签树节点的类型
+// - bookmark: 表示一个书签
+// - folder: 表示一个文件夹
+// - separator: 表示一个分隔符
+type BookmarkTreeNodeType = 'bookmark' | 'folder' | 'separator';
 
-/**
- * 书签链接（URL）
- */
-interface BookmarkLink extends BookmarkNode {
-  href: string; // 网址
-  icon?: string; // 可选：favicon 的 base64 数据（如 data:image/png;base64,...）
-}
+// 书签树节点的不可修改状态
+// - managed: 表示该节点被管理，不能被修改
+type BookmarkTreeNodeUnmodifiable = 'managed';
 
-/**
- * 书签文件夹
- */
-interface BookmarkFolder extends BookmarkNode {
-  children: BookmarkItem[]; // 子节点列表（链接或子文件夹）
-}
+// 文件夹的类型
+// - bookmarks-bar: 书签栏
+// - other: 其他书签
+// - mobile: 移动设备书签
+// - managed: 被管理的书签
+type FolderType = 'bookmarks-bar' | 'other' | 'mobile' | 'managed';
 
-/**
- * 书签项的联合类型
- */
-type BookmarkItem = BookmarkLink | BookmarkFolder;
-
-/**
- * 整个书签文件的根结构
- */
-interface BookmarkFile {
-  // DOCTYPE 标识（虽然不是内容，但可用于验证）
-  // 实际解析时通常忽略，但可以保留元信息
-  metadata: {
-    title: string; // <TITLE> 标签内容，默认为 "书签"
-    rootName: string; // <H1> 标签内容，如 "书签菜单"
-  };
-
-  // 根节点列表（通常是一个 DL 列表下的所有 DT 项）
-  bookmarks: BookmarkItem[];
-}
-
-/**
- * 存储在 IndexedDB 中的书签节点
- */
-interface StoredBookmarkNode {
-  // 主键：唯一标识符（推荐使用字符串 ID）
-  id: string;
-
-  // 节点类型
-  type: 'link' | 'folder';
-
-  // 基本信息
-  title: string;
-  parentId: string | null; // 指向父文件夹的 id；根节点为 null
-
-  // 排序用：在父节点中的位置
-  index: number;
-
-  // 链接特有字段
-  url?: string; // 仅 type === 'link' 时存在
-
-  // 图标（可选）
-  icon?: string; // base64 图标数据
-
-  // 时间戳（秒）
-  addDate: number;
-  lastModified: number;
-
-  // 可选：用于全文搜索的标签
-  tags?: string[];
-}
-
-/**
- * 存储在 IndexedDB 中的书签节点
- */
-interface ViewBookmarkNode extends StoredBookmarkNode {
-  children?: ViewBookmarkNode[];
-}
-
-enum BookmarkTreeNodeType {
-  BOOKMARK = 'bookmark',
-  FOLDER = 'folder',
-  SEPARATOR = 'separator',
-}
-
-enum BookmarkTreeNodeUnmodifiable {
-  MANAGED = 'managed',
-}
-
+// 创建书签时的配置选项接口
 interface CreateDetails {
-  parentId?: string;
-  index?: number;
-  title?: string;
-  url?: string;
-  type?: BookmarkTreeNodeType;
+    parentId?: string; // 父节点ID
+    index?: number; // 在父节点中的位置索引
+    title?: string; // 书签标题
+    url?: string; // 书签URL
+    type?: BookmarkTreeNodeType; // 节点类型
 }
 
+// 书签树节点接口
 interface BookmarkTreeNode {
-  children?: BookmarkTreeNode[];
-  dateAdded?: number;
-  dateGroupModified?: number;
-  id: string;
-  index?: number;
-  parentId?: string;
-  title: string;
-  type?: BookmarkTreeNodeType;
-  unmodifiable?: BookmarkTreeNodeUnmodifiable;
-  url?: string;
+    children?: BookmarkTreeNode[]; // 子节点数组，仅文件夹类型有此属性
+    dateAdded?: number; // 添加日期的时间戳
+    dateGroupModified?: number; // 组最后修改日期的时间戳
+    id: string; // 节点唯一标识符
+    index?: number; // 在父节点中的位置索引
+    parentId?: string; // 父节点ID
+    title: string; // 节点标题
+    unmodifiable?: BookmarkTreeNodeUnmodifiable; // 节点是否可修改
+    url?: string; // 书签URL，仅书签类型有此属性
 
-  // 以下是扩展字段
-  dateLastUsed?: number;
-  folderType?: 'bookmarks-bar' | 'other' | 'mobile' | 'managed';
-  syncing?: boolean;
+    // Firefox特有字段
+    type?: BookmarkTreeNodeType; // 节点类型
+
+    // Chrome特有字段
+    dateLastUsed?: number; // 最后使用日期的时间戳
+    folderType?: FolderType; // 文件夹类型
+    syncing?: boolean; // 是否正在同步
 }
 
 // 集中导出所有书签相关类型
-export {
-  type BookmarkNode,
-  type BookmarkLink,
-  type BookmarkFolder,
-  type BookmarkItem,
-  type BookmarkFile,
-  type StoredBookmarkNode,
-  type ViewBookmarkNode,
-  type BookmarkTreeNode,
-  type CreateDetails,
-};
+export { type BookmarkTreeNode, type CreateDetails };
