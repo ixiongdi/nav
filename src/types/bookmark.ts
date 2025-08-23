@@ -82,19 +82,40 @@ interface ViewBookmarkNode extends StoredBookmarkNode {
   children?: ViewBookmarkNode[];
 }
 
+enum BookmarkTreeNodeType {
+  BOOKMARK = 'bookmark',
+  FOLDER = 'folder',
+  SEPARATOR = 'separator',
+}
+
+enum BookmarkTreeNodeUnmodifiable {
+  MANAGED = 'managed',
+}
+
+interface CreateDetails {
+  parentId?: string;
+  index?: number;
+  title?: string;
+  url?: string;
+  type?: BookmarkTreeNodeType;
+}
+
 interface BookmarkTreeNode {
   children?: BookmarkTreeNode[];
   dateAdded?: number;
   dateGroupModified?: number;
-  dateLastUsed?: number;
+  id: string;
   index?: number;
-  folderType?: 'bookmarks-bar' | 'other' | 'mobile' | 'managed';
   parentId?: string;
   title: string;
-  url: string;
-  unmodifiable?: 'managed';
-  id: string;
-  syncing: boolean;
+  type?: BookmarkTreeNodeType;
+  unmodifiable?: BookmarkTreeNodeUnmodifiable;
+  url?: string;
+
+  // 以下是扩展字段
+  dateLastUsed?: number;
+  folderType?: 'bookmarks-bar' | 'other' | 'mobile' | 'managed';
+  syncing?: boolean;
 }
 
 // 集中导出所有书签相关类型
@@ -107,4 +128,5 @@ export {
   type StoredBookmarkNode,
   type ViewBookmarkNode,
   type BookmarkTreeNode,
+  type CreateDetails,
 };
