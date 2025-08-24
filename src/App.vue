@@ -12,8 +12,9 @@
                             placeholder="🔍 搜索书签，按回车快速跳转 (Ctrl+K)"
                             prefix-icon="Search"
                             @select="handleSelect"
-                            @keyup.enter="handleSearchJump"
                             @keydown="handleKeyDown"
+                            @compositionstart="handleCompositionStart"
+                            @compositionend="handleCompositionEnd"
                             clearable
                             size="large"
                             class="search-input"
@@ -87,7 +88,31 @@
                             class="folder-tree"
                             :highlight-current="true"
                             :expand-on-click-node="false"
-                        />
+                        >
+                            <template #default="{ node, data }">
+                                <el-dropdown
+                                    trigger="contextmenu"
+                                    @command="(command) => handleFolderCommand(command, data)"
+                                >
+                                    <div class="folder-tree-node">
+                                        <el-icon class="folder-icon"><Folder /></el-icon>
+                                        <span class="folder-name">{{ data.title }}</span>
+                                    </div>
+                                    <template #dropdown>
+                                        <el-dropdown-menu>
+                                            <el-dropdown-item command="edit">
+                                                <el-icon><Edit /></el-icon>
+                                                编辑文件夹
+                                            </el-dropdown-item>
+                                            <el-dropdown-item command="delete" divided>
+                                                <el-icon><Delete /></el-icon>
+                                                删除文件夹
+                                            </el-dropdown-item>
+                                        </el-dropdown-menu>
+                                    </template>
+                                </el-dropdown>
+                            </template>
+                        </el-tree>
                     </div>
                 </el-aside>
 
@@ -96,19 +121,23 @@
                     <!-- 工具栏 -->
                     <div class="toolbar">
                         <div class="toolbar-section">
-                            <el-button type="primary" icon="Download" @click="importBookmarks" class="action-btn import-btn">
-                                📥 导入书签
+                            <el-button type="primary" @click="importBookmarks" class="action-btn import-btn">
+                                <el-icon><Download /></el-icon>
+                                导入书签
                             </el-button>
-                            <el-button type="success" icon="Upload" @click="exportBookmarks" class="action-btn export-btn">
-                                📤 导出书签
+                            <el-button type="success" @click="exportBookmarks" class="action-btn export-btn">
+                                <el-icon><Upload /></el-icon>
+                                导出书签
                             </el-button>
                         </div>
                         <div class="toolbar-section">
-                            <el-button type="primary" icon="Plus" @click="addBookmark" class="action-btn add-btn">
-                                ➕ 新增
+                            <el-button type="primary" @click="addBookmark" class="action-btn add-btn">
+                                <el-icon><Plus /></el-icon>
+                                新增
                             </el-button>
-                            <el-button type="danger" icon="Delete" @click="clearBookmarks" class="action-btn clear-btn">
-                                🗑️ 清空
+                            <el-button type="danger" @click="clearBookmarks" class="action-btn clear-btn">
+                                <el-icon><FolderDelete /></el-icon>
+                                清空
                             </el-button>
                         </div>
                     </div>
@@ -133,61 +162,59 @@
                                 :key="bookmark.id" 
                                 class="bookmark-card-wrapper"
                             >
-                                <el-card class="bookmark-card" shadow="hover">
-                                    <template #header>
-                                        <div class="bookmark-header">
-                                            <div class="bookmark-info">
-                                                <div class="bookmark-favicon">
-                                                    <el-avatar 
-                                                        :src="bookmark.icon" 
-                                                        :size="32"
-                                                        class="favicon"
-                                                    >
-                                                        <el-icon><Link /></el-icon>
-                                                    </el-avatar>
-                                                </div>
-                                                <div class="bookmark-title">
-                                                    <el-text class="title-text" :title="bookmark.title">
-                                                        {{ bookmark.title }}
+                                <el-card class="bookmark-card" shadow="hover" @click="openBookmark(bookmark)">
+                                    <div class="bookmark-body">
+                                        <!-- 左侧图标 -->
+                                        <div class="bookmark-favicon">
+                                            <el-avatar 
+                                                :src="bookmark.icon" 
+                                                :size="40"
+                                                class="favicon"
+                                            >
+                                                <el-icon><Link /></el-icon>
+                                            </el-avatar>
+                                        </div>
+                                        
+                                        <!-- 右侧内容区 -->
+                                        <div class="bookmark-info">
+                                            <!-- 标题 -->
+                                            <div class="bookmark-title">
+                                                <el-text class="title-text" :title="bookmark.title">
+                                                    {{ bookmark.title }}
+                                                </el-text>
+                                            </div>
+                                            
+                                            <!-- 链接 -->
+                                            <div class="bookmark-url-container">
+                                                <div class="bookmark-url" :title="bookmark.url">
+                                                    <el-text class="url-text">
+                                                        {{ bookmark.url }}
                                                     </el-text>
                                                 </div>
                                             </div>
-                                            
-                                            <!-- 按钮组放在header右侧 -->
-                                            <div class="bookmark-actions">
-                                                <el-button 
-                                                    type="primary" 
-                                                    :icon="Edit" 
-                                                    circle 
-                                                    size="small"
-                                                    @click="editBookmark(bookmark)"
-                                                    class="action-btn-circle edit-action"
-                                                    title="编辑"
-                                                />
-                                                <el-button
-                                                    type="danger"
-                                                    :icon="Delete"
-                                                    circle
-                                                    size="small"
-                                                    @click="onRemoved(bookmark.id, bookmark)"
-                                                    class="action-btn-circle delete-action"
-                                                    title="删除"
-                                                />
-                                            </div>
                                         </div>
-                                    </template>
-                                    
-                                    <div class="bookmark-content">
-                                        <el-link 
-                                            :href="bookmark.url" 
-                                            target="_blank" 
-                                            class="bookmark-url"
-                                            :title="bookmark.url"
-                                        >
-                                            <el-text class="url-text">
-                                                {{ bookmark.url }}
-                                            </el-text>
-                                        </el-link>
+                                        
+                                        <!-- 操作按钮组 -->
+                                        <div class="bookmark-actions" @click.stop>
+                                            <el-button 
+                                                type="primary" 
+                                                :icon="Edit" 
+                                                circle 
+                                                size="small"
+                                                @click="editBookmark(bookmark)"
+                                                class="action-btn-circle edit-action"
+                                                title="编辑"
+                                            />
+                                            <el-button
+                                                type="danger"
+                                                :icon="Delete"
+                                                circle
+                                                size="small"
+                                                @click="onRemoved(bookmark.id, bookmark)"
+                                                class="action-btn-circle delete-action"
+                                                title="删除"
+                                            />
+                                        </div>
                                     </div>
                                 </el-card>
                             </div>
@@ -200,7 +227,8 @@
                             </div>
                             <h3 class="empty-title">暂无书签</h3>
                             <p class="empty-description">点击「新增」按钮添加您的第一个书签吧！</p>
-                            <el-button type="primary" icon="Plus" @click="addBookmark" class="empty-action">
+                            <el-button type="primary" @click="addBookmark" class="empty-action">
+                                <el-icon><Plus /></el-icon>
                                 添加书签
                             </el-button>
                         </div>
@@ -303,9 +331,9 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Link, Search, Download, Upload, Plus, Delete, Edit, Clock, Filter, Folder, Document, DocumentCopy } from '@element-plus/icons-vue';
+import { Link, Search, Download, Upload, Plus, Delete, Edit, Clock, Filter, Folder, Document, DocumentCopy, FolderDelete } from '@element-plus/icons-vue';
 import { MyBookmarks } from './utils/bookmarks';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { parseHtmlToBookmarks, bookmarksToHtml } from './utils/parser';
 import type { BookmarkTreeNode, CreateDetails } from './types/bookmark';
 
@@ -317,6 +345,9 @@ const maxSearchHistory = 10;
 const searchInput = ref();
 const searchFilter = ref('all'); // 'all', 'recent', 'folder'
 const searchFolderId = ref('');
+
+// 中文输入法状态
+const isComposing = ref(false);
 
 // 搜索筛选器处理
 function handleSearchFilter(command: string) {
@@ -339,7 +370,26 @@ function handleKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
         searchQuery.value = '';
         searchInput.value?.blur();
+        return;
     }
+    
+    // 处理回车键，但要考虑中文输入法状态
+    if (event.key === 'Enter') {
+        // 如果正在使用中文输入法，不触发跳转
+        if (!isComposing.value) {
+            handleSearchJump();
+        }
+    }
+}
+
+// 中文输入法开始
+function handleCompositionStart() {
+    isComposing.value = true;
+}
+
+// 中文输入法结束
+function handleCompositionEnd() {
+    isComposing.value = false;
 }
 
 // 全局快捷键
@@ -515,7 +565,7 @@ function loadSearchHistory() {
     }
 }
 
-// 文件夹树相关
+// 文件夹相关
 const folderTree = ref<any[]>([]);
 const currentFolder = ref('');
 const folderTreeProps = ref({
@@ -576,6 +626,15 @@ async function loadBookmarks() {
     bookmarks.value = await bookmarkDB.getBookmarkChildren(currentFolder.value);
 }
 
+// 打开书签
+function openBookmark(bookmark: BookmarkTreeNode) {
+    if (bookmark.url) {
+        window.open(bookmark.url, '_blank');
+        // 更新使用记录
+        updateBookmarkUsage(bookmark.id);
+    }
+}
+
 // 搜索跳转
 function handleSearchJump() {
     const query = searchQuery.value.trim();
@@ -604,6 +663,88 @@ function handleSearchJump() {
 function handleFolderClick(data: any) {
     currentFolder.value = data.id;
     loadBookmarks();
+}
+
+// 处理文件夹菜单命令
+function handleFolderCommand(command: string, folderData: any) {
+    switch (command) {
+        case 'edit':
+            editFolder(folderData);
+            break;
+        case 'delete':
+            deleteFolderWithConfirm(folderData);
+            break;
+    }
+}
+
+// 编辑文件夹
+function editFolder(folder: BookmarkTreeNode) {
+    editingBookmark.value = folder;
+    editForm.value = {
+        id: folder.id,
+        title: folder.title,
+        url: '', // 文件夹没有URL
+        parentId: folder.parentId || ''
+    };
+    editBookmarkDialogVisible.value = true;
+}
+
+// 删除文件夹（带确认）
+async function deleteFolderWithConfirm(folder: BookmarkTreeNode) {
+    try {
+        // 检查文件夹是否有子内容
+        const children = await bookmarkDB.getBookmarkChildren(folder.id);
+        let confirmMessage = `确定要删除文件夹「${folder.title}」吗？`;
+        
+        if (children.length > 0) {
+            confirmMessage += `\n\n注意：该文件夹包含 ${children.length} 个子项，删除后将无法恢复！`;
+        }
+        
+        const { value } = await ElMessageBox.confirm(
+            confirmMessage,
+            '删除文件夹',
+            {
+                type: 'warning',
+                confirmButtonText: '确定删除',
+                cancelButtonText: '取消',
+                dangerouslyUseHTMLString: true
+            }
+        );
+        
+        if (value === 'confirm') {
+            await deleteFolder(folder);
+        }
+    } catch (error) {
+        // 用户取消了操作
+        console.log('用户取消了删除操作');
+    }
+}
+
+// 删除文件夹
+async function deleteFolder(folder: BookmarkTreeNode) {
+    try {
+        ElMessage.info('正在删除文件夹...');
+        
+        // 使用 removeTree 方法递归删除文件夹及其所有子内容
+        await bookmarkDB.removeTree(folder.id);
+        
+        ElMessage.success(`文件夹「${folder.title}」删除成功`);
+        
+        // 如果删除的是当前选中的文件夹，则清空当前选择
+        if (currentFolder.value === folder.id) {
+            currentFolder.value = '';
+        }
+        
+        // 重新加载数据
+        await loadFolderTree();
+        await loadBookmarks();
+        await loadAllBookmarks();
+        
+        console.log('文件夹删除成功:', folder);
+    } catch (error) {
+        ElMessage.error('删除文件夹失败，请重试');
+        console.error('删除文件夹错误:', error);
+    }
 }
 
 // 导入书签
@@ -942,12 +1083,12 @@ function cancelEdit() {
 
 /* 头部样式 */
 .header-section {
-    padding: 40px 32px;
+    padding: 20px 32px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    min-height: 140px;
+    min-height: 100px;
     display: flex;
     align-items: center;
 }
@@ -1029,6 +1170,54 @@ function cancelEdit() {
     background: transparent;
 }
 
+/* 文件夹树节点样式 */
+.folder-tree-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    width: 100%;
+    min-height: 32px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+}
+
+.folder-tree-node:hover {
+    background: rgba(99, 102, 241, 0.1);
+    transform: translateX(2px);
+}
+
+.folder-icon {
+    font-size: 16px;
+    color: #6366f1;
+    flex-shrink: 0;
+}
+
+.folder-name {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 500;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 确保dropdown触发区域覆盖整个节点 */
+:deep(.el-tree-node__content) {
+    padding: 0 !important;
+}
+
+:deep(.el-tree-node__content .el-dropdown) {
+    width: 100%;
+}
+
+:deep(.el-tree-node__content .el-dropdown > div) {
+    width: 100%;
+}
+
 /* 主内容区样式 */
 .main-content {
     background: white;
@@ -1107,31 +1296,38 @@ function cancelEdit() {
 /* 书签容器 */
 .bookmarks-container {
     min-height: 400px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 .bookmarks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
     padding: 4px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bookmark-card-wrapper {
     transition: all 0.3s ease;
+    width: 100%;
+    min-width: 0;
 }
 
 .bookmark-card {
     height: auto;
-    min-height: 200px;
+    min-height: 120px;
     border-radius: 16px;
     border: 1px solid #e2e8f0;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     background: white;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
     cursor: pointer;
     position: relative;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .bookmark-card:hover {
@@ -1140,34 +1336,21 @@ function cancelEdit() {
     border-color: #6366f1;
 }
 
-/* 优化悬停时卡片内容的视觉效果 */
-.bookmark-card:hover .bookmark-header {
-    transform: translateY(-2px);
-}
-
-.bookmark-card:hover .bookmark-content {
-    transform: translateY(-1px);
-}
-
-.bookmark-header {
-    display: flex;
-    align-items: center;
-    padding: 4px 0;
-    transition: transform 0.3s ease;
-    position: relative;
-    justify-content: space-between;
-    width: 100%;
-}
-
-.bookmark-info {
+/* 书签主体内容区域 */
+.bookmark-body {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex: 1;
-    min-width: 0;
-    justify-content: flex-start;
+    padding: 16px;
+    position: relative;
+    transition: transform 0.3s ease;
 }
 
+.bookmark-card:hover .bookmark-body {
+    transform: translateY(-2px);
+}
+
+/* 左侧图标区域 */
 .bookmark-favicon {
     flex-shrink: 0;
     display: flex;
@@ -1175,97 +1358,113 @@ function cancelEdit() {
 }
 
 .favicon {
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.bookmark-card:hover .favicon {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* 右侧信息区域 */
+.bookmark-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
 }
 
 .bookmark-title {
-    flex: 1;
+    width: 100%;
     min-width: 0;
-    text-align: left;
 }
 
 .title-text {
     font-weight: 600;
     color: #1f2937;
-    font-size: 15px;
-    line-height: 1.4;
+    font-size: 14px;
+    line-height: 1.3;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    width: 100%;
 }
 
-.bookmark-content {
-    margin: 8px 0;
-    flex: 1;
-    display: flex;
-    align-items: flex-start;
-    transition: transform 0.3s ease;
-    overflow: hidden;
+.bookmark-url-container {
+    width: 100%;
+    min-width: 0;
 }
 
 .bookmark-url {
-    text-decoration: none;
     display: block;
-    padding: 6px 12px;
+    padding: 8px 10px;
     background: #f8fafc;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     transition: all 0.3s ease;
     width: 100%;
-    height: 100%;
-    min-height: 50px;
-    max-height: 60px;
+    min-height: 46px;
+    cursor: inherit;
+    box-sizing: border-box;
     overflow: hidden;
 }
 
-.bookmark-url:hover {
+.bookmark-card:hover .bookmark-url {
     background: #f1f5f9;
     border-color: #6366f1;
-    transform: translateY(-1px);
 }
 
 .url-text {
-    font-size: 13px;
+    font-size: 12px;
     color: #6b7280;
-    line-height: 1.4;
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     word-break: break-all;
+    width: 100%;
+    box-sizing: border-box;
 }
 
+/* 操作按钮样式 */
 .bookmark-actions {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
     gap: 6px;
-    padding: 4px;
     align-items: center;
     visibility: hidden;
     opacity: 0;
     z-index: 50;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform: scale(0.9);
     flex-shrink: 0;
-    margin-left: 12px;
+    padding: 6px;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
 }
 
 /* 卡片悬停时显示按钮 */
 .bookmark-card:hover .bookmark-actions {
     visibility: visible;
     opacity: 1;
-    transform: scale(1);
+    transform: translateY(-50%) scale(1);
 }
 
 .action-btn-circle {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: none;
@@ -1273,7 +1472,7 @@ function cancelEdit() {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     position: relative;
     z-index: 100;
@@ -1290,7 +1489,7 @@ function cancelEdit() {
 }
 
 .action-btn-circle:hover {
-    transform: translateY(-2px) scale(1.2) !important;
+    transform: translateY(-2px) scale(1.15) !important;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
@@ -1361,8 +1560,8 @@ function cancelEdit() {
 /* 响应式设计 */
 @media (max-width: 768px) {
     .header-section {
-        padding: 24px 20px;
-        min-height: 120px;
+        padding: 16px 20px;
+        min-height: 80px;
     }
     
     .header-content {
@@ -1370,13 +1569,13 @@ function cancelEdit() {
     }
     
     :deep(.el-input__wrapper) {
-        height: 56px;
+        height: 52px;
     }
     
     :deep(.el-input__inner) {
         font-size: 16px;
-        height: 52px;
-        line-height: 52px;
+        height: 48px;
+        line-height: 48px;
         padding: 0 20px;
     }
     
@@ -1386,11 +1585,11 @@ function cancelEdit() {
     
     :deep(.el-input__prefix) {
         font-size: 18px;
-        height: 52px;
+        height: 48px;
     }
     
     :deep(.el-input__suffix) {
-        height: 52px;
+        height: 48px;
     }
     
     .filter-btn {
@@ -1424,33 +1623,56 @@ function cancelEdit() {
         flex-wrap: wrap;
     }
     
+    .bookmarks-container {
+        max-width: 100%;
+        padding: 0 8px;
+    }
+    
     .bookmarks-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        padding: 2px;
     }
     
     .bookmark-card {
-        min-height: 180px;
+        min-height: 110px;
+    }
+    
+    .bookmark-body {
+        padding: 14px;
+        gap: 10px;
+    }
+    
+    .favicon {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    .title-text {
+        font-size: 13px;
+    }
+    
+    .url-text {
+        font-size: 11px;
     }
     
     .action-btn-circle {
-        width: 26px;
-        height: 26px;
-        font-size: 11px;
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
     }
     
     .bookmark-actions {
         gap: 4px;
-        padding: 4px 6px;
-        top: 6px;
-        right: 6px;
+        padding: 4px;
+        right: 8px;
     }
 }
 
 @media (max-width: 480px) {
     .header-section {
-        padding: 20px 16px;
-        min-height: 100px;
+        padding: 12px 16px;
+        min-height: 70px;
     }
     
     .header-content {
@@ -1458,14 +1680,14 @@ function cancelEdit() {
     }
     
     :deep(.el-input__wrapper) {
-        height: 52px;
+        height: 48px;
         border-radius: 20px;
     }
     
     :deep(.el-input__inner) {
         font-size: 15px;
-        height: 48px;
-        line-height: 48px;
+        height: 44px;
+        line-height: 44px;
         padding: 0 18px;
     }
     
@@ -1475,12 +1697,12 @@ function cancelEdit() {
     
     :deep(.el-input__prefix) {
         font-size: 16px;
-        height: 48px;
+        height: 44px;
         margin-left: 6px;
     }
     
     :deep(.el-input__suffix) {
-        height: 48px;
+        height: 44px;
         margin-right: 6px;
     }
     
@@ -1502,6 +1724,58 @@ function cancelEdit() {
     .action-btn {
         padding: 10px 16px;
         font-size: 14px;
+    }
+    
+    .bookmarks-container {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+    
+    .bookmarks-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 2px;
+    }
+    
+    .bookmark-card {
+        min-height: 100px;
+    }
+    
+    .bookmark-body {
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .favicon {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    .title-text {
+        font-size: 12px;
+    }
+    
+    .url-text {
+        font-size: 10px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .bookmark-url {
+        padding: 6px 8px;
+        min-height: 40px;
+    }
+    
+    .action-btn-circle {
+        width: 22px;
+        height: 22px;
+        font-size: 9px;
+    }
+    
+    .bookmark-actions {
+        gap: 3px;
+        padding: 3px;
+        right: 6px;
+        border-radius: 10px;
     }
     
     .action-btn-circle {
@@ -1527,7 +1801,7 @@ function cancelEdit() {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     transition: all 0.3s ease;
-    height: 64px;
+    height: 60px;
     padding: 0 8px;
 }
 
@@ -1549,8 +1823,8 @@ function cancelEdit() {
     color: #1f2937;
     font-weight: 500;
     padding: 0 24px;
-    height: 60px;
-    line-height: 60px;
+    height: 56px;
+    line-height: 56px;
 }
 
 :deep(.el-input__inner::placeholder) {
@@ -1563,13 +1837,13 @@ function cancelEdit() {
     color: #6b7280;
     font-size: 20px;
     margin-left: 8px;
-    height: 60px;
+    height: 56px;
     display: flex;
     align-items: center;
 }
 
 :deep(.el-input__suffix) {
-    height: 60px;
+    height: 56px;
     display: flex;
     align-items: center;
     margin-right: 8px;
@@ -1907,4 +2181,53 @@ function cancelEdit() {
 .bookmark-card-wrapper:nth-child(4) { animation-delay: 0.4s; }
 .bookmark-card-wrapper:nth-child(5) { animation-delay: 0.5s; }
 .bookmark-card-wrapper:nth-child(6) { animation-delay: 0.6s; }
+
+/* Element Plus Dropdown 菜单样式优化 */
+:deep(.el-dropdown-menu) {
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 8px 0;
+    min-width: 160px;
+}
+
+:deep(.el-dropdown-menu__item) {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+    gap: 8px;
+    border-radius: 8px;
+    margin: 2px 8px;
+    transition: all 0.2s ease;
+}
+
+:deep(.el-dropdown-menu__item:hover) {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+:deep(.el-dropdown-menu__item:focus) {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+:deep(.el-dropdown-menu__item.is-divided) {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    margin-top: 8px;
+}
+
+/* 删除按钮特殊样式 */
+:deep(.el-dropdown-menu__item[data-command="delete"]) {
+    color: #ef4444;
+}
+
+:deep(.el-dropdown-menu__item[data-command="delete"]:hover) {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
 </style>
