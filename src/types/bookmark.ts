@@ -36,6 +36,9 @@ interface BookmarkTreeNode {
     unmodifiable?: BookmarkTreeNodeUnmodifiable; // 节点是否可修改
     url?: string; // 书签URL，仅书签类型有此属性
 
+    // 图标
+    icon?: string;
+
     // Firefox特有字段
     type?: BookmarkTreeNodeType; // 节点类型
 

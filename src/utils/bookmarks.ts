@@ -83,18 +83,39 @@ interface Bookmarks {
      * @returns 返回更新后的书签节点
      */
     update(id: string, changes: object): Promise<BookmarkTreeNode>;
+
+    clear(): Promise<void>;
 }
 
 class MyBookmarks implements Bookmarks {
+    /**
+     * 根据URL生成Google的favicon服务地址
+     * @param url 网站URL
+     * @returns Google的favicon服务地址
+     */
+    getGoogleFaviconUrl(url: string): string {
+        try {
+            // 解析URL获取域名
+            const domain = new URL(url).hostname;
+
+            // 返回Google的favicon服务地址
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        } catch (error) {
+            // 如果URL解析失败，返回一个默认的Google图标
+            console.warn(`Failed to parse URL: ${url}`, error);
+            return 'https://www.google.com/favicon.ico';
+        }
+    }
     async create(node: CreateDetails): Promise<BookmarkTreeNode> {
         const id = v7();
-        const now = Date.now(); // 1000;
+        const now = Date.now() / 1000; // 1000;
         const bookmark: BookmarkTreeNode = {
             id,
             parentId: node.parentId,
             index: node.index,
             title: node.title || 'untitled',
             url: node.url,
+            icon: node.url ? this.getGoogleFaviconUrl(node.url) : undefined,
             type: node.type || 'bookmark',
             dateAdded: now,
             dateGroupModified: now,
@@ -108,7 +129,9 @@ class MyBookmarks implements Bookmarks {
             const node = await db.bookmarks.get(idOrIdList);
             return node ? [node] : [];
         } else {
-            return db.bookmarks.bulkGet(idOrIdList).then(results => results.filter((result): result is BookmarkTreeNode => result !== undefined));
+            return db.bookmarks
+                .bulkGet(idOrIdList)
+                .then((results) => results.filter((result): result is BookmarkTreeNode => result !== undefined));
         }
     }
 
@@ -149,10 +172,7 @@ class MyBookmarks implements Bookmarks {
         return roots;
     }
 
-    async move(
-        id: string,
-        destination: { parentId: string; index?: number }
-    ): Promise<BookmarkTreeNode> {
+    async move(id: string, destination: { parentId: string; index?: number }): Promise<BookmarkTreeNode> {
         await db.bookmarks.update(id, { parentId: destination.parentId, index: destination.index });
         const node = await db.bookmarks.get(id);
         if (!node) throw new Error('Node not found');
@@ -174,17 +194,13 @@ class MyBookmarks implements Bookmarks {
     async search(query: string | object): Promise<BookmarkTreeNode[]> {
         if (typeof query === 'string') {
             return db.bookmarks
-                .filter(
-                    (node) => node.title.includes(query) || (node.url && node.url.includes(query))
-                )
+                .filter((node) => node.title.includes(query) || (node.url && node.url.includes(query)))
                 .toArray();
         } else {
             // 简单对象条件匹配
             return db.bookmarks
                 .filter((node) => {
-                    return Object.entries(query).every(
-                        ([key, value]) => (node as any)[key] === value
-                    );
+                    return Object.entries(query).every(([key, value]) => (node as any)[key] === value);
                 })
                 .toArray();
         }
@@ -196,4 +212,34 @@ class MyBookmarks implements Bookmarks {
         if (!node) throw new Error('Node not found');
         return node;
     }
+
+    async clear(): Promise<void> {
+        await db.bookmarks.clear();
+    }
+
+    async getFolderTree(): Promise<BookmarkTreeNode[]> {
+        const all = await db.bookmarks.where({ type: 'folder' }).toArray();
+        const map = new Map<string, BookmarkTreeNode>();
+        all.forEach((node) => map.set(node.id, { ...node, children: [] }));
+        const roots: BookmarkTreeNode[] = [];
+        map.forEach((node) => {
+            if (node.parentId && map.has(node.parentId)) {
+                map.get(node.parentId)!.children!.push(node);
+            } else {
+                roots.push(node);
+            }
+        });
+        return roots;
+    }
+
+    async getBookmarkChildren(id: string): Promise<BookmarkTreeNode[]> {
+        return db.bookmarks
+            .where({
+                parentId: id,
+                type: 'bookmark',
+            })
+            .toArray();
+    }
 }
+
+export { MyBookmarks };

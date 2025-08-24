@@ -10,7 +10,7 @@ class BookmarkDatabase extends Dexie {
     constructor() {
         super('MyBookmarks');
         this.version(1).stores({
-            bookmarks: 'id, parentId, type, index', // 主键和索引
+            bookmarks: 'id, parentId, type, index, [parentId+type]', // 主键和索引
         });
     }
 }
