@@ -39,8 +39,6 @@ jobs:
       
     - name: 构建项目
       run: npm run build
-      env:
-        VITE_BASE_PATH: /nav/
       
     - name: 上传到 Pages
       uses: actions/upload-pages-artifact@v3
