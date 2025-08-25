@@ -39,6 +39,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "build:github": "VITE_BASE_PATH=/nav/ vue-tsc -b && vite build",
+    "build:custom": "VITE_BASE_PATH=/ vue-tsc -b && vite build",
     "preview": "vite preview",
     "format": "prettier --write .",
     "lint": "vue-tsc --noEmit",
