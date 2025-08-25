@@ -32,9 +32,9 @@ jobs:
     - name: 创建发布包
       run: |
         cd dist
-        tar -czf ../mynav-${{ github.ref_name }}.tar.gz .
+        tar -czf ../nav-${{ github.ref_name }}.tar.gz .
         cd ..
-        zip -r mynav-${{ github.ref_name }}.zip dist/
+        zip -r nav-${{ github.ref_name }}.zip dist/
         
     - name: 生成更改日志
       id: changelog
@@ -44,13 +44,13 @@ jobs:
     - name: 创建 GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        name: MyNav ${{ github.ref_name }}
+        name: 稀饭导航 ${{ github.ref_name }}
         body: |
-          ## 🎉 MyNav ${{ github.ref_name }} 发布
+          ## 🎉 稀饭导航 ${{ github.ref_name }} 发布
 
           ### 📦 下载
-          - [源代码压缩包 (.tar.gz)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mynav-${{ github.ref_name }}.tar.gz)
-          - [源代码压缩包 (.zip)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mynav-${{ github.ref_name }}.zip)
+          - [源代码压缩包 (.tar.gz)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/nav-${{ github.ref_name }}.tar.gz)
+          - [源代码压缩包 (.zip)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/nav-${{ github.ref_name }}.zip)
 
           ### 🚀 在线体验
           [点击这里在线体验](https://nav.xifan.uno)
@@ -62,7 +62,7 @@ jobs:
           ```bash
           # 克隆仓库
           git clone https://github.com/${{ github.repository }}.git
-          cd mynav
+          cd nav
 
           # 安装依赖
           npm install
@@ -74,8 +74,8 @@ jobs:
           ---
           完整的使用文档请查看 [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
         files: |
-          mynav-${{ github.ref_name }}.tar.gz
-          mynav-${{ github.ref_name }}.zip
+          nav-${{ github.ref_name }}.tar.gz
+          nav-${{ github.ref_name }}.zip
         draft: false
         prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
         generate_release_notes: true
