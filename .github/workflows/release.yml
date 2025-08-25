@@ -40,9 +40,11 @@ jobs:
       id: changelog
       run: |
         if [ -f CHANGELOG.md ]; then
-          echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
-          cat CHANGELOG.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo 'changelog_content<<CHANGELOG_DELIMITER'
+            cat CHANGELOG.md
+            echo 'CHANGELOG_DELIMITER'
+          } >> $GITHUB_OUTPUT
         else
           echo "changelog_content=查看完整更改日志请访问提交历史。" >> $GITHUB_OUTPUT
         fi
