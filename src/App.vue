@@ -19,12 +19,14 @@
                             size="large"
                             class="search-input"
                             :popper-options="{
-                                modifiers: [{
-                                    name: 'offset',
-                                    options: {
-                                        offset: [0, 12]
-                                    }
-                                }]
+                                modifiers: [
+                                    {
+                                        name: 'offset',
+                                        options: {
+                                            offset: [0, 12],
+                                        },
+                                    },
+                                ],
                             }"
                             :popper-class="'search-suggestions'"
                         >
@@ -40,30 +42,39 @@
                                     </template>
                                 </el-dropdown>
                             </template>
-                    <template #default="{ item }">
-                        <div style="display: flex; align-items: center; padding: 8px 0;">
-                            <el-avatar 
-                                v-if="!item.isHistory" 
-                                :src="item.icon" 
-                                size="small" 
-                                style="margin-right: 12px; flex-shrink: 0;"
-                            />
-                            <el-icon v-else style="margin-right: 12px; color: #909399;">
-                                <Clock />
-                            </el-icon>
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="font-weight: 500; color: #303133; margin-bottom: 2px;">
-                                    {{ item.title || item.value }}
+                            <template #default="{ item }">
+                                <div style="display: flex; align-items: center; padding: 8px 0">
+                                    <el-avatar
+                                        v-if="!item.isHistory"
+                                        :src="item.icon"
+                                        size="small"
+                                        style="margin-right: 12px; flex-shrink: 0"
+                                    />
+                                    <el-icon v-else style="margin-right: 12px; color: #909399">
+                                        <Clock />
+                                    </el-icon>
+                                    <div style="flex: 1; min-width: 0">
+                                        <div style="font-weight: 500; color: #303133; margin-bottom: 2px">
+                                            {{ item.title || item.value }}
+                                        </div>
+                                        <div
+                                            v-if="item.url && !item.isHistory"
+                                            style="
+                                                font-size: 12px;
+                                                color: #909399;
+                                                overflow: hidden;
+                                                text-overflow: ellipsis;
+                                                white-space: nowrap;
+                                            "
+                                        >
+                                            {{ item.url }}
+                                        </div>
+                                        <div v-if="item.isHistory" style="font-size: 12px; color: #909399">
+                                            搜索历史
+                                        </div>
+                                    </div>
                                 </div>
-                                <div v-if="item.url && !item.isHistory" style="font-size: 12px; color: #909399; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    {{ item.url }}
-                                </div>
-                                <div v-if="item.isHistory" style="font-size: 12px; color: #909399;">
-                                    搜索历史
-                                </div>
-                            </div>
-                        </div>
-                    </template>
+                            </template>
                         </el-autocomplete>
                     </div>
                 </div>
@@ -157,24 +168,16 @@
                     <!-- 书签列表 -->
                     <div class="bookmarks-container">
                         <div class="bookmarks-grid" v-if="bookmarks.length > 0">
-                            <div 
-                                v-for="bookmark in bookmarks" 
-                                :key="bookmark.id" 
-                                class="bookmark-card-wrapper"
-                            >
+                            <div v-for="bookmark in bookmarks" :key="bookmark.id" class="bookmark-card-wrapper">
                                 <el-card class="bookmark-card" shadow="hover" @click="openBookmark(bookmark)">
                                     <div class="bookmark-body">
                                         <!-- 左侧图标 -->
                                         <div class="bookmark-favicon">
-                                            <el-avatar 
-                                                :src="bookmark.icon" 
-                                                :size="40"
-                                                class="favicon"
-                                            >
+                                            <el-avatar :src="bookmark.icon" :size="40" class="favicon">
                                                 <el-icon><Link /></el-icon>
                                             </el-avatar>
                                         </div>
-                                        
+
                                         <!-- 右侧内容区 -->
                                         <div class="bookmark-info">
                                             <!-- 标题 -->
@@ -183,7 +186,7 @@
                                                     {{ bookmark.title }}
                                                 </el-text>
                                             </div>
-                                            
+
                                             <!-- 链接 -->
                                             <div class="bookmark-url-container">
                                                 <div class="bookmark-url" :title="bookmark.url">
@@ -193,13 +196,13 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- 操作按钮组 -->
                                         <div class="bookmark-actions" @click.stop>
-                                            <el-button 
-                                                type="primary" 
-                                                :icon="Edit" 
-                                                circle 
+                                            <el-button
+                                                type="primary"
+                                                :icon="Edit"
+                                                circle
                                                 size="small"
                                                 @click="editBookmark(bookmark)"
                                                 class="action-btn-circle edit-action"
@@ -219,7 +222,7 @@
                                 </el-card>
                             </div>
                         </div>
-                        
+
                         <!-- 空状态 -->
                         <div v-else class="empty-state">
                             <div class="empty-icon">
@@ -237,101 +240,102 @@
             </el-container>
         </el-container>
     </div>
-        
-        <!-- 添加书签/文件夹对话框 -->
-        <el-dialog 
-            v-model="addBookmarkDialogVisible" 
-            :title="bookmarkForm.url ? '添加书签' : '添加文件夹'" 
-            width="500px"
-            :before-close="cancelAddBookmark"
-        >
-            <el-form :model="bookmarkForm" label-width="80px">
-                <el-form-item label="标题" required>
-                    <el-input 
-                        v-model="bookmarkForm.title" 
-                        placeholder="请输入标题"
-                        clearable
-                    />
-                </el-form-item>
-                <el-form-item label="链接">
-                    <el-input 
-                        v-model="bookmarkForm.url" 
-                        placeholder="请输入书签链接（如：https://example.com），不填则创建文件夹"
-                        clearable
-                    />
-                </el-form-item>
-                <el-form-item label="文件夹">
-                    <el-tree-select
-                        v-model="bookmarkForm.parentId"
-                        :data="folderTree"
-                        :props="folderTreeProps"
-                        node-key="id"
-                        :render-after-expand="false"
-                        :check-strictly="true"
-                        placeholder="选择文件夹（可选）"
-                        clearable
-                        style="width: 100%"
-                    />
-                </el-form-item>
-            </el-form>
-            
-            <template #footer>
-                <div class="dialog-footer">
-                    <el-button @click="cancelAddBookmark">取消</el-button>
-                    <el-button type="primary" @click="confirmAddBookmark">确定</el-button>
-                </div>
-            </template>
-        </el-dialog>
 
-        <!-- 编辑书签/文件夹对话框 -->
-        <el-dialog 
-            v-model="editBookmarkDialogVisible" 
-            :title="editForm.url ? '编辑书签' : '编辑文件夹'" 
-            width="500px"
-            :before-close="cancelEdit"
-        >
-            <el-form :model="editForm" label-width="80px">
-                <el-form-item label="标题" required>
-                    <el-input 
-                        v-model="editForm.title" 
-                        placeholder="请输入标题"
-                        clearable
-                    />
-                </el-form-item>
-                <el-form-item label="链接" v-if="editForm.url !== undefined">
-                    <el-input 
-                        v-model="editForm.url" 
-                        placeholder="请输入书签链接（如：https://example.com）"
-                        clearable
-                    />
-                </el-form-item>
-                <el-form-item label="文件夹">
-                    <el-tree-select
-                        v-model="editForm.parentId"
-                        :data="folderTree"
-                        :props="folderTreeProps"
-                        node-key="id"
-                        :render-after-expand="false"
-                        :check-strictly="true"
-                        placeholder="选择文件夹（可选）"
-                        clearable
-                        style="width: 100%"
-                    />
-                </el-form-item>
-            </el-form>
-            
-            <template #footer>
-                <div class="dialog-footer">
-                    <el-button @click="cancelEdit">取消</el-button>
-                    <el-button type="primary" @click="confirmEdit">确定</el-button>
-                </div>
-            </template>
-        </el-dialog>
+    <!-- 添加书签/文件夹对话框 -->
+    <el-dialog
+        v-model="addBookmarkDialogVisible"
+        :title="bookmarkForm.url ? '添加书签' : '添加文件夹'"
+        width="500px"
+        :before-close="cancelAddBookmark"
+    >
+        <el-form :model="bookmarkForm" label-width="80px">
+            <el-form-item label="标题" required>
+                <el-input v-model="bookmarkForm.title" placeholder="请输入标题" clearable />
+            </el-form-item>
+            <el-form-item label="链接">
+                <el-input
+                    v-model="bookmarkForm.url"
+                    placeholder="请输入书签链接（如：https://example.com），不填则创建文件夹"
+                    clearable
+                />
+            </el-form-item>
+            <el-form-item label="文件夹">
+                <el-tree-select
+                    v-model="bookmarkForm.parentId"
+                    :data="folderTree"
+                    :props="folderTreeProps"
+                    node-key="id"
+                    :render-after-expand="false"
+                    :check-strictly="true"
+                    placeholder="选择文件夹（可选）"
+                    clearable
+                    style="width: 100%"
+                />
+            </el-form-item>
+        </el-form>
+
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="cancelAddBookmark">取消</el-button>
+                <el-button type="primary" @click="confirmAddBookmark">确定</el-button>
+            </div>
+        </template>
+    </el-dialog>
+
+    <!-- 编辑书签/文件夹对话框 -->
+    <el-dialog
+        v-model="editBookmarkDialogVisible"
+        :title="editForm.url ? '编辑书签' : '编辑文件夹'"
+        width="500px"
+        :before-close="cancelEdit"
+    >
+        <el-form :model="editForm" label-width="80px">
+            <el-form-item label="标题" required>
+                <el-input v-model="editForm.title" placeholder="请输入标题" clearable />
+            </el-form-item>
+            <el-form-item label="链接" v-if="editForm.url !== undefined">
+                <el-input v-model="editForm.url" placeholder="请输入书签链接（如：https://example.com）" clearable />
+            </el-form-item>
+            <el-form-item label="文件夹">
+                <el-tree-select
+                    v-model="editForm.parentId"
+                    :data="folderTree"
+                    :props="folderTreeProps"
+                    node-key="id"
+                    :render-after-expand="false"
+                    :check-strictly="true"
+                    placeholder="选择文件夹（可选）"
+                    clearable
+                    style="width: 100%"
+                />
+            </el-form-item>
+        </el-form>
+
+        <template #footer>
+            <div class="dialog-footer">
+                <el-button @click="cancelEdit">取消</el-button>
+                <el-button type="primary" @click="confirmEdit">确定</el-button>
+            </div>
+        </template>
+    </el-dialog>
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Link, Download, Upload, Plus, Delete, Edit, Clock, Filter, Folder, Document, DocumentCopy, FolderDelete } from '@element-plus/icons-vue';
+import {
+    Link,
+    Download,
+    Upload,
+    Plus,
+    Delete,
+    Edit,
+    Clock,
+    Filter,
+    Folder,
+    Document,
+    DocumentCopy,
+    FolderDelete,
+} from '@element-plus/icons-vue';
 import { MyBookmarks } from './utils/bookmarks';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { parseHtmlToBookmarks, bookmarksToHtml } from './utils/parser';
@@ -372,7 +376,7 @@ function handleKeyDown(event: KeyboardEvent) {
         searchInput.value?.blur();
         return;
     }
-    
+
     // 处理回车键，但要考虑中文输入法状态
     if (event.key === 'Enter') {
         // 如果正在使用中文输入法，不触发跳转
@@ -422,49 +426,52 @@ function handleSearch(query: string, callback: (data: any[]) => void) {
     if (query.trim()) {
         const queryLower = query.toLowerCase();
         let filteredBookmarks = allBookmarks.value;
-        
+
         // 按筛选器过滤
         switch (searchFilter.value) {
             case 'recent':
                 filteredBookmarks = allBookmarks.value
-                    .filter(bookmark => bookmark.dateLastUsed && bookmark.dateLastUsed > 0)
+                    .filter((bookmark) => bookmark.dateLastUsed && bookmark.dateLastUsed > 0)
                     .sort((a, b) => (b.dateLastUsed || 0) - (a.dateLastUsed || 0))
                     .slice(0, 20);
                 break;
             case 'folder':
                 if (searchFolderId.value) {
-                    filteredBookmarks = allBookmarks.value
-                        .filter(bookmark => bookmark.parentId === searchFolderId.value);
+                    filteredBookmarks = allBookmarks.value.filter(
+                        (bookmark) => bookmark.parentId === searchFolderId.value
+                    );
                 }
                 break;
             default:
                 filteredBookmarks = allBookmarks.value;
         }
-        
+
         const results = filteredBookmarks
-            .filter((bookmark) => 
-                bookmark.title.toLowerCase().includes(queryLower) || 
-                (bookmark.url && bookmark.url.toLowerCase().includes(queryLower))
+            .filter(
+                (bookmark) =>
+                    bookmark.title.toLowerCase().includes(queryLower) ||
+                    (bookmark.url && bookmark.url.toLowerCase().includes(queryLower))
             )
             .map((bookmark) => {
                 // 计算匹配度分数
                 let score = 0;
                 const titleMatch = bookmark.title.toLowerCase().indexOf(queryLower);
                 const urlMatch = bookmark.url ? bookmark.url.toLowerCase().indexOf(queryLower) : -1;
-                
+
                 // 标题匹配分数更高
-                if (titleMatch === 0) score += 100; // 开头匹配
+                if (titleMatch === 0)
+                    score += 100; // 开头匹配
                 else if (titleMatch > -1) score += 50; // 部分匹配
-                
+
                 if (urlMatch === 0) score += 30;
                 else if (urlMatch > -1) score += 10;
-                
+
                 // 最近使用加分
                 if (bookmark.dateLastUsed && bookmark.dateLastUsed > 0) {
                     const daysSinceUse = (Date.now() / 1000 - bookmark.dateLastUsed) / (24 * 60 * 60);
                     score += Math.max(0, 20 - daysSinceUse);
                 }
-                
+
                 return {
                     value: bookmark.title,
                     url: bookmark.url,
@@ -472,20 +479,20 @@ function handleSearch(query: string, callback: (data: any[]) => void) {
                     icon: bookmark.icon,
                     title: bookmark.title,
                     parentId: bookmark.parentId,
-                    score
+                    score,
                 };
             })
             .sort((a, b) => b.score - a.score) // 按分数排序
             .slice(0, 10); // 限制建议数量
-        
+
         // 如果没有匹配结果，显示搜索历史
         if (results.length === 0 && searchHistory.value.length > 0) {
             const historyResults = searchHistory.value
-                .filter(item => item.toLowerCase().includes(queryLower))
+                .filter((item) => item.toLowerCase().includes(queryLower))
                 .slice(0, 5)
-                .map(item => ({
+                .map((item) => ({
                     value: item,
-                    isHistory: true
+                    isHistory: true,
                 }));
             callback(historyResults);
         } else {
@@ -493,12 +500,10 @@ function handleSearch(query: string, callback: (data: any[]) => void) {
         }
     } else {
         // 显示最近搜索历史
-        const historyResults = searchHistory.value
-            .slice(0, 5)
-            .map(item => ({
-                value: item,
-                isHistory: true
-            }));
+        const historyResults = searchHistory.value.slice(0, 5).map((item) => ({
+            value: item,
+            isHistory: true,
+        }));
         callback(historyResults);
     }
 }
@@ -521,22 +526,22 @@ function handleSelect(item: any) {
 // 添加到搜索历史
 function addToSearchHistory(query: string) {
     if (!query.trim()) return;
-    
+
     const trimmedQuery = query.trim();
     // 移除已存在的项目
     const index = searchHistory.value.indexOf(trimmedQuery);
     if (index > -1) {
         searchHistory.value.splice(index, 1);
     }
-    
+
     // 添加到开头
     searchHistory.value.unshift(trimmedQuery);
-    
+
     // 保持历史记录数量限制
     if (searchHistory.value.length > maxSearchHistory) {
         searchHistory.value = searchHistory.value.slice(0, maxSearchHistory);
     }
-    
+
     // 保存到本地存储
     localStorage.setItem('searchHistory', JSON.stringify(searchHistory.value));
 }
@@ -544,8 +549,8 @@ function addToSearchHistory(query: string) {
 // 更新书签使用记录
 async function updateBookmarkUsage(id: string) {
     try {
-        await bookmarkDB.update(id, { 
-            dateLastUsed: Date.now() / 1000 
+        await bookmarkDB.update(id, {
+            dateLastUsed: Date.now() / 1000,
         });
     } catch (error) {
         console.warn('Failed to update bookmark usage:', error);
@@ -571,7 +576,7 @@ const currentFolder = ref('');
 const folderTreeProps = ref({
     value: 'id',
     label: 'title',
-    children: 'children'
+    children: 'children',
 });
 
 // 书签列表相关
@@ -585,7 +590,7 @@ const addBookmarkDialogVisible = ref(false);
 const bookmarkForm = ref({
     title: '',
     url: '',
-    parentId: ''
+    parentId: '',
 });
 
 // 编辑书签对话框相关
@@ -594,7 +599,7 @@ const editForm = ref({
     id: '',
     title: '',
     url: '',
-    parentId: ''
+    parentId: '',
 });
 const editingBookmark = ref<BookmarkTreeNode | null>(null);
 
@@ -604,7 +609,7 @@ onMounted(async () => {
     await loadBookmarks();
     await loadAllBookmarks();
     loadSearchHistory();
-    
+
     // 添加全局快捷键监听
     document.addEventListener('keydown', handleGlobalKeyDown);
 });
@@ -641,14 +646,15 @@ function handleSearchJump() {
     if (query) {
         // 添加到搜索历史
         addToSearchHistory(query);
-        
+
         // 找到第一个匹配的书签并跳转
         const queryLower = query.toLowerCase();
-        const matched = allBookmarks.value.find((bookmark) =>
-            bookmark.title.toLowerCase().includes(queryLower) || 
-            (bookmark.url && bookmark.url.toLowerCase().includes(queryLower))
+        const matched = allBookmarks.value.find(
+            (bookmark) =>
+                bookmark.title.toLowerCase().includes(queryLower) ||
+                (bookmark.url && bookmark.url.toLowerCase().includes(queryLower))
         );
-        
+
         if (matched && matched.url) {
             window.open(matched.url, '_blank');
             // 更新使用记录
@@ -684,7 +690,7 @@ function editFolder(folder: BookmarkTreeNode) {
         id: folder.id,
         title: folder.title,
         url: '', // 文件夹没有URL
-        parentId: folder.parentId || ''
+        parentId: folder.parentId || '',
     };
     editBookmarkDialogVisible.value = true;
 }
@@ -695,22 +701,18 @@ async function deleteFolderWithConfirm(folder: BookmarkTreeNode) {
         // 检查文件夹是否有子内容
         const children = await bookmarkDB.getBookmarkChildren(folder.id);
         let confirmMessage = `确定要删除文件夹「${folder.title}」吗？`;
-        
+
         if (children.length > 0) {
             confirmMessage += `\n\n注意：该文件夹包含 ${children.length} 个子项，删除后将无法恢复！`;
         }
-        
-        const { value } = await ElMessageBox.confirm(
-            confirmMessage,
-            '删除文件夹',
-            {
-                type: 'warning',
-                confirmButtonText: '确定删除',
-                cancelButtonText: '取消',
-                dangerouslyUseHTMLString: true
-            }
-        );
-        
+
+        const { value } = await ElMessageBox.confirm(confirmMessage, '删除文件夹', {
+            type: 'warning',
+            confirmButtonText: '确定删除',
+            cancelButtonText: '取消',
+            dangerouslyUseHTMLString: true,
+        });
+
         if (value === 'confirm') {
             await deleteFolder(folder);
         }
@@ -724,22 +726,22 @@ async function deleteFolderWithConfirm(folder: BookmarkTreeNode) {
 async function deleteFolder(folder: BookmarkTreeNode) {
     try {
         ElMessage.info('正在删除文件夹...');
-        
+
         // 使用 removeTree 方法递归删除文件夹及其所有子内容
         await bookmarkDB.removeTree(folder.id);
-        
+
         ElMessage.success(`文件夹「${folder.title}」删除成功`);
-        
+
         // 如果删除的是当前选中的文件夹，则清空当前选择
         if (currentFolder.value === folder.id) {
             currentFolder.value = '';
         }
-        
+
         // 重新加载数据
         await loadFolderTree();
         await loadBookmarks();
         await loadAllBookmarks();
-        
+
         console.log('文件夹删除成功:', folder);
     } catch (error) {
         ElMessage.error('删除文件夹失败，请重试');
@@ -799,47 +801,46 @@ async function saveBookmarks(bookmarks: BookmarkTreeNode[]) {
 async function exportBookmarks() {
     try {
         ElMessage.info('正在导出书签...');
-        
+
         // 获取全部书签数据
         const allBookmarksData = await bookmarkDB.getTree();
-        
+
         if (allBookmarksData.length === 0) {
             ElMessage.warning('没有可导出的书签');
             return;
         }
-        
+
         // 生成文件名（包含时间戳）
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
         const filename = `xifan-nav-bookmarks-${timestamp}.html`;
-        
+
         // 将书签数据转换为HTML
         const htmlContent = bookmarksToHtml(allBookmarksData, '稀饭导航导出的书签');
-        
+
         // 创建下载链接
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
-        
+
         // 创建下载元素并触发下载
         const downloadLink = document.createElement('a');
         downloadLink.href = url;
         downloadLink.download = filename;
         downloadLink.style.display = 'none';
-        
+
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
-        
+
         // 清理URL对象
         URL.revokeObjectURL(url);
-        
+
         ElMessage.success(`书签已成功导出为 ${filename}`);
-        
+
         console.log('导出书签成功:', {
             count: countBookmarks(allBookmarksData),
             filename,
-            size: `${Math.round(blob.size / 1024)}KB`
+            size: `${Math.round(blob.size / 1024)}KB`,
         });
-        
     } catch (error) {
         console.error('导出书签失败:', error);
         ElMessage.error('导出书签失败，请重试');
@@ -865,7 +866,7 @@ function addBookmark() {
     bookmarkForm.value = {
         title: '',
         url: '',
-        parentId: currentFolder.value || ''
+        parentId: currentFolder.value || '',
     };
     // 显示对话框
     addBookmarkDialogVisible.value = true;
@@ -877,9 +878,9 @@ async function confirmAddBookmark() {
         ElMessage.warning('请输入标题');
         return;
     }
-    
+
     const hasUrl = bookmarkForm.value.url.trim();
-    
+
     // 如果有URL，验证URL格式
     if (hasUrl) {
         try {
@@ -896,21 +897,21 @@ async function confirmAddBookmark() {
             url: hasUrl ? bookmarkForm.value.url.trim() : undefined,
             parentId: bookmarkForm.value.parentId || currentFolder.value,
             type: hasUrl ? 'bookmark' : 'folder',
-            index: bookmarks.value.length
+            index: bookmarks.value.length,
         };
-        
+
         const newItem = await bookmarkDB.create(createDetails);
-        
+
         const itemType = hasUrl ? '书签' : '文件夹';
         ElMessage.success(`${itemType}添加成功`);
-        
+
         // 关闭对话框
         addBookmarkDialogVisible.value = false;
-        
+
         // 重新加载书签列表和文件夹树
         await loadBookmarks();
         await loadFolderTree();
-        
+
         console.log(`新增${itemType}:`, newItem);
     } catch (error) {
         ElMessage.error('添加失败，请重试');
@@ -924,7 +925,7 @@ function cancelAddBookmark() {
     bookmarkForm.value = {
         title: '',
         url: '',
-        parentId: ''
+        parentId: '',
     };
 }
 
@@ -938,8 +939,6 @@ function clearBookmarks() {
 
     ElMessage.success('书签已清空');
 }
-
-
 
 async function onRemoved(id: string, removeInfo: object) {
     await bookmarkDB.remove(id);
@@ -957,7 +956,7 @@ function editBookmark(bookmark: BookmarkTreeNode) {
         id: bookmark.id,
         title: bookmark.title,
         url: bookmark.url || '',
-        parentId: bookmark.parentId || ''
+        parentId: bookmark.parentId || '',
     };
     editBookmarkDialogVisible.value = true;
 }
@@ -968,9 +967,9 @@ async function confirmEdit() {
         ElMessage.warning('请输入标题');
         return;
     }
-    
+
     const hasUrl = editForm.value.url.trim();
-    
+
     // 如果有URL，验证URL格式
     if (hasUrl) {
         try {
@@ -984,9 +983,9 @@ async function confirmEdit() {
     try {
         const changes: any = {
             title: editForm.value.title.trim(),
-            parentId: editForm.value.parentId || null
+            parentId: editForm.value.parentId || null,
         };
-        
+
         // 只有书签才更新URL
         if (editingBookmark.value?.url !== undefined) {
             changes.url = hasUrl ? editForm.value.url.trim() : undefined;
@@ -994,21 +993,21 @@ async function confirmEdit() {
                 changes.icon = bookmarkDB.getGoogleFaviconUrl(changes.url);
             }
         }
-        
+
         await bookmarkDB.update(editForm.value.id, changes);
-        
+
         const itemType = editingBookmark.value?.url ? '书签' : '文件夹';
         ElMessage.success(`${itemType}编辑成功`);
-        
+
         // 关闭对话框
         editBookmarkDialogVisible.value = false;
-        
+
         // 重新加载书签列表和文件夹树
         await loadBookmarks();
         await loadFolderTree();
         // 重新加载全部书签以更新搜索
         await loadAllBookmarks();
-        
+
         console.log(`编辑${itemType}:`, changes);
     } catch (error) {
         ElMessage.error('编辑失败，请重试');
@@ -1023,7 +1022,7 @@ function cancelEdit() {
         id: '',
         title: '',
         url: '',
-        parentId: ''
+        parentId: '',
     };
     editingBookmark.value = null;
 }
@@ -1034,7 +1033,13 @@ function cancelEdit() {
 .app-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family:
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
 }
 
 .main-container {
@@ -1396,7 +1401,6 @@ function cancelEdit() {
 /* 操作按钮样式 */
 .bookmark-actions {
     display: flex;
-    flex-direction: column;
     gap: 6px;
     align-items: center;
     visibility: hidden;
@@ -1407,13 +1411,11 @@ function cancelEdit() {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform: scale(0.9);
     flex-shrink: 0;
     padding: 6px;
     position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%) scale(0.9);
+    right: -10px;
+    top: 10px;
 }
 
 /* 卡片悬停时显示按钮 */
@@ -1524,105 +1526,105 @@ function cancelEdit() {
         padding: 16px 20px;
         min-height: 80px;
     }
-    
+
     .header-content {
         max-width: 100%;
     }
-    
+
     :deep(.el-input__wrapper) {
         height: 52px;
     }
-    
+
     :deep(.el-input__inner) {
         font-size: 16px;
         height: 48px;
         line-height: 48px;
         padding: 0 20px;
     }
-    
+
     :deep(.el-input__inner::placeholder) {
         font-size: 14px;
     }
-    
+
     :deep(.el-input__prefix) {
         font-size: 18px;
         height: 48px;
     }
-    
+
     :deep(.el-input__suffix) {
         height: 48px;
     }
-    
+
     .filter-btn {
         width: 36px;
         height: 36px;
     }
-    
+
     .content-container {
         margin: 0 8px 8px 8px;
         border-radius: 16px;
     }
-    
+
     .sidebar {
         width: 100%;
         max-width: 100%;
     }
-    
+
     .main-content {
         padding: 16px;
     }
-    
+
     .toolbar {
         flex-direction: column;
         gap: 16px;
         padding: 16px;
     }
-    
+
     .toolbar-section {
         width: 100%;
         justify-content: center;
         flex-wrap: wrap;
     }
-    
+
     .bookmarks-container {
         max-width: 100%;
         padding: 0 8px;
     }
-    
+
     .bookmarks-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 12px;
         padding: 2px;
     }
-    
+
     .bookmark-card {
         min-height: 110px;
     }
-    
+
     .bookmark-body {
         padding: 14px;
         gap: 10px;
     }
-    
+
     .favicon {
         width: 36px !important;
         height: 36px !important;
     }
-    
+
     .title-text {
         font-size: 13px;
     }
-    
+
     .url-text {
         font-size: 11px;
     }
-    
+
     .action-btn-circle {
         width: 24px;
         height: 24px;
         font-size: 10px;
     }
-    
+
     .bookmark-actions {
         gap: 4px;
         padding: 4px;
@@ -1635,116 +1637,116 @@ function cancelEdit() {
         padding: 12px 16px;
         min-height: 70px;
     }
-    
+
     .header-content {
         max-width: 100%;
     }
-    
+
     :deep(.el-input__wrapper) {
         height: 48px;
         border-radius: 20px;
     }
-    
+
     :deep(.el-input__inner) {
         font-size: 15px;
         height: 44px;
         line-height: 44px;
         padding: 0 18px;
     }
-    
+
     :deep(.el-input__inner::placeholder) {
         font-size: 13px;
     }
-    
+
     :deep(.el-input__prefix) {
         font-size: 16px;
         height: 44px;
         margin-left: 6px;
     }
-    
+
     :deep(.el-input__suffix) {
         height: 44px;
         margin-right: 6px;
     }
-    
+
     .filter-btn {
         width: 32px;
         height: 32px;
         margin-right: 12px;
     }
-    
+
     .content-container {
         margin: 0 4px 4px 4px;
         border-radius: 12px;
     }
-    
+
     .toolbar {
         padding: 12px;
     }
-    
+
     .action-btn {
         padding: 10px 16px;
         font-size: 14px;
     }
-    
+
     .bookmarks-container {
         max-width: 100%;
         padding: 0 4px;
     }
-    
+
     .bookmarks-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
         padding: 2px;
     }
-    
+
     .bookmark-card {
         min-height: 100px;
     }
-    
+
     .bookmark-body {
         padding: 10px;
         gap: 8px;
     }
-    
+
     .favicon {
         width: 32px !important;
         height: 32px !important;
     }
-    
+
     .title-text {
         font-size: 12px;
     }
-    
+
     .url-text {
         font-size: 10px;
         -webkit-line-clamp: 2;
     }
-    
+
     .bookmark-url {
         padding: 6px 8px;
         min-height: 40px;
     }
-    
+
     .action-btn-circle {
         width: 22px;
         height: 22px;
         font-size: 9px;
     }
-    
+
     .bookmark-actions {
         gap: 3px;
         padding: 3px;
         right: 6px;
         border-radius: 10px;
     }
-    
+
     .action-btn-circle {
         width: 24px;
         height: 24px;
         font-size: 10px;
     }
-    
+
     .bookmark-actions {
         gap: 3px;
         padding: 3px 5px;
@@ -2136,12 +2138,24 @@ function cancelEdit() {
     animation: fadeInUp 0.6s ease forwards;
 }
 
-.bookmark-card-wrapper:nth-child(1) { animation-delay: 0.1s; }
-.bookmark-card-wrapper:nth-child(2) { animation-delay: 0.2s; }
-.bookmark-card-wrapper:nth-child(3) { animation-delay: 0.3s; }
-.bookmark-card-wrapper:nth-child(4) { animation-delay: 0.4s; }
-.bookmark-card-wrapper:nth-child(5) { animation-delay: 0.5s; }
-.bookmark-card-wrapper:nth-child(6) { animation-delay: 0.6s; }
+.bookmark-card-wrapper:nth-child(1) {
+    animation-delay: 0.1s;
+}
+.bookmark-card-wrapper:nth-child(2) {
+    animation-delay: 0.2s;
+}
+.bookmark-card-wrapper:nth-child(3) {
+    animation-delay: 0.3s;
+}
+.bookmark-card-wrapper:nth-child(4) {
+    animation-delay: 0.4s;
+}
+.bookmark-card-wrapper:nth-child(5) {
+    animation-delay: 0.5s;
+}
+.bookmark-card-wrapper:nth-child(6) {
+    animation-delay: 0.6s;
+}
 
 /* Element Plus Dropdown 菜单样式优化 */
 :deep(.el-dropdown-menu) {
@@ -2183,11 +2197,11 @@ function cancelEdit() {
 }
 
 /* 删除按钮特殊样式 */
-:deep(.el-dropdown-menu__item[data-command="delete"]) {
+:deep(.el-dropdown-menu__item[data-command='delete']) {
     color: #ef4444;
 }
 
-:deep(.el-dropdown-menu__item[data-command="delete"]:hover) {
+:deep(.el-dropdown-menu__item[data-command='delete']:hover) {
     background: rgba(239, 68, 68, 0.1);
     color: #dc2626;
 }
