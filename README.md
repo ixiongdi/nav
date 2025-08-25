@@ -6,7 +6,7 @@
 
 ### 主界面
 
-![稀饭导航主界面](https://raw.githubusercontent.com/ixiongdi/nav/main/docs/images/main-interface.jpeg)
+![稀饭导航主界面](docs/images/main-interface.jpeg)
 
 **界面特色：**
 - 🎨 **优雅设计** - 采用渐变背景和毛玻璃效果，界面现代美观
@@ -17,11 +17,11 @@
 
 ### 添加书签
 
-![添加书签界面](https://raw.githubusercontent.com/ixiongdi/nav/main/docs/images/add-bookmark.jpeg)
+![添加书签界面](docs/images/add-bookmark.jpeg)
 
 ### 书签管理
 
-![书签管理界面](https://raw.githubusercontent.com/ixiongdi/nav/main/docs/images/bookmark-management.jpeg)
+![书签管理界面](docs/images/bookmark-management.jpeg)
 
 ## ✨ 功能特性
 
