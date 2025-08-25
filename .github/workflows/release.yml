@@ -39,15 +39,7 @@ jobs:
     - name: 生成更改日志
       id: changelog
       run: |
-        if [ -f CHANGELOG.md ]; then
-          {
-            echo 'changelog_content<<CHANGELOG_DELIMITER'
-            cat CHANGELOG.md
-            echo 'CHANGELOG_DELIMITER'
-          } >> $GITHUB_OUTPUT
-        else
-          echo "changelog_content=查看完整更改日志请访问提交历史。" >> $GITHUB_OUTPUT
-        fi
+        echo "changelog_content=🚀 本版本的详细更改内容请查看下方的自动生成的 Release Notes。" >> $GITHUB_OUTPUT
         
     - name: 创建 GitHub Release
       uses: softprops/action-gh-release@v1
