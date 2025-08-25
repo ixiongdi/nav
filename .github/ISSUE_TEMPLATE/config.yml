@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 一般讨论
+    url: https://github.com/ixiongdi/nav/discussions
+    about: 用于一般问题、讨论和想法交流
+  - name: 🔒 安全漏洞报告
+    url: mailto:security@example.com
+    about: 请私下报告安全漏洞（不要创建公开Issue）

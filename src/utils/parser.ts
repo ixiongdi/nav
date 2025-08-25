@@ -32,7 +32,6 @@ export function parseHtmlToBookmarks(html: string): BookmarkTreeNode[] {
  * @returns HTML字符串
  */
 export function bookmarksToHtml(bookmarks: BookmarkTreeNode[], title: string = 'Bookmarks'): string {
-    const currentTime = Math.floor(Date.now() / 1000);
     
     // HTML文档头部
     const htmlHeader = `<!DOCTYPE html>

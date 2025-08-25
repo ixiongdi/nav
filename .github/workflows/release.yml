@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: 构建发布版本
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置 Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 安装依赖
+      run: npm ci
+      
+    - name: 构建项目
+      run: npm run build
+      
+    - name: 创建发布包
+      run: |
+        cd dist
+        tar -czf ../mynav-${{ github.ref_name }}.tar.gz .
+        cd ..
+        zip -r mynav-${{ github.ref_name }}.zip dist/
+        
+    - name: 生成更改日志
+      id: changelog
+      run: |
+        if [ -f CHANGELOG.md ]; then
+          echo "changelog_content<<EOF" >> $GITHUB_OUTPUT
+          cat CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "changelog_content=查看完整更改日志请访问提交历史。" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: 创建 GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: MyNav ${{ github.ref_name }}
+        body: |
+          ## 🎉 MyNav ${{ github.ref_name }} 发布
+
+          ### 📦 下载
+          - [源代码压缩包 (.tar.gz)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mynav-${{ github.ref_name }}.tar.gz)
+          - [源代码压缩包 (.zip)](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/mynav-${{ github.ref_name }}.zip)
+
+          ### 🚀 在线体验
+          [点击这里在线体验](https://nav.xifan.uno)
+
+          ### 📝 更改内容
+          ${{ steps.changelog.outputs.changelog_content }}
+
+          ### 🔧 安装和使用
+          ```bash
+          # 克隆仓库
+          git clone https://github.com/${{ github.repository }}.git
+          cd mynav
+
+          # 安装依赖
+          npm install
+
+          # 启动开发服务器
+          npm run dev
+          ```
+
+          ---
+          完整的使用文档请查看 [README.md](https://github.com/${{ github.repository }}/blob/main/README.md)
+        files: |
+          mynav-${{ github.ref_name }}.tar.gz
+          mynav-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        generate_release_notes: true

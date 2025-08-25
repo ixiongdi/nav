@@ -1,13 +1,48 @@
 {
-  "name": "mynav",
-  "private": true,
-  "version": "0.0.0",
+  "name": "xifan-nav",
+  "version": "1.0.0",
+  "description": "稀饭导航 - 一个基于Vue 3和TypeScript的现代化个人导航书签管理应用，支持本地存储、智能搜索、数据导入导出等功能",
+  "author": "Andy Xiong",
+  "license": "MIT",
+  "homepage": "https://nav.xifan.uno",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ixiongdi/nav.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ixiongdi/nav/issues"
+  },
+  "keywords": [
+    "bookmark",
+    "navigation",
+    "bookmark-manager",
+    "vue3",
+    "typescript",
+    "vite",
+    "element-plus",
+    "indexeddb",
+    "local-storage",
+    "personal-tool",
+    "web-app",
+    "browser-bookmarks",
+    "folder-management",
+    "search",
+    "import-export",
+    "open-source"
+  ],
+  "private": false,
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "lint": "vue-tsc --noEmit",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "dexie": "^4.2.0",

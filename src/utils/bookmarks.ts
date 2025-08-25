@@ -173,7 +173,13 @@ class MyBookmarks implements Bookmarks {
     }
 
     async move(id: string, destination: { parentId: string; index?: number }): Promise<BookmarkTreeNode> {
-        await db.bookmarks.update(id, { parentId: destination.parentId, index: destination.index });
+        const updateData: Record<string, any> = {
+            parentId: destination.parentId
+        };
+        if (destination.index !== undefined) {
+            updateData.index = destination.index;
+        }
+        await (db.bookmarks as any).update(id, updateData);
         const node = await db.bookmarks.get(id);
         if (!node) throw new Error('Node not found');
         return node;
@@ -194,7 +200,11 @@ class MyBookmarks implements Bookmarks {
     async search(query: string | object): Promise<BookmarkTreeNode[]> {
         if (typeof query === 'string') {
             return db.bookmarks
-                .filter((node) => node.title.includes(query) || (node.url && node.url.includes(query)))
+                .filter((node) => {
+                    const titleMatch = node.title?.includes(query) || false;
+                    const urlMatch = node.url ? node.url.includes(query) : false;
+                    return titleMatch || urlMatch;
+                })
                 .toArray();
         } else {
             // 简单对象条件匹配
@@ -207,7 +217,7 @@ class MyBookmarks implements Bookmarks {
     }
 
     async update(id: string, changes: object): Promise<BookmarkTreeNode> {
-        await db.bookmarks.update(id, changes);
+        await (db.bookmarks as any).update(id, changes);
         const node = await db.bookmarks.get(id);
         if (!node) throw new Error('Node not found');
         return node;

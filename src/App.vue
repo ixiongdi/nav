@@ -89,10 +89,10 @@
                             :highlight-current="true"
                             :expand-on-click-node="false"
                         >
-                            <template #default="{ node, data }">
+                            <template #default="{ data }">
                                 <el-dropdown
                                     trigger="contextmenu"
-                                    @command="(command) => handleFolderCommand(command, data)"
+                                    @command="(command: string) => handleFolderCommand(command, data)"
                                 >
                                     <div class="folder-tree-node">
                                         <el-icon class="folder-icon"><Folder /></el-icon>
@@ -331,7 +331,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { Link, Search, Download, Upload, Plus, Delete, Edit, Clock, Filter, Folder, Document, DocumentCopy, FolderDelete } from '@element-plus/icons-vue';
+import { Link, Download, Upload, Plus, Delete, Edit, Clock, Filter, Folder, Document, DocumentCopy, FolderDelete } from '@element-plus/icons-vue';
 import { MyBookmarks } from './utils/bookmarks';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { parseHtmlToBookmarks, bookmarksToHtml } from './utils/parser';
@@ -763,9 +763,12 @@ function importBookmarks() {
                 const bookmarks = parseHtmlToBookmarks(html);
                 console.log('导入的书签:', bookmarks);
                 // 实际应用中，这里应该将书签保存到数据库
-                onImportBegan();
+                console.log('开始导入书签...');
+                ElMessage.info('开始导入书签...');
                 saveBookmarks(bookmarks).then(async () => {
-                    onImportEnded();
+                    ElMessage.success('成功导入书签');
+                    loadBookmarks();
+                    loadFolderTree();
                     // 重新加载全部书签以更新搜索
                     await loadAllBookmarks();
                 });
@@ -807,10 +810,10 @@ async function exportBookmarks() {
         
         // 生成文件名（包含时间戳）
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-        const filename = `mynav-bookmarks-${timestamp}.html`;
+        const filename = `xifan-nav-bookmarks-${timestamp}.html`;
         
         // 将书签数据转换为HTML
-        const htmlContent = bookmarksToHtml(allBookmarksData, 'MyNav 导出的书签');
+        const htmlContent = bookmarksToHtml(allBookmarksData, '稀饭导航导出的书签');
         
         // 创建下载链接
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
@@ -936,49 +939,7 @@ function clearBookmarks() {
     ElMessage.success('书签已清空');
 }
 
-// 新增的函数
-function onChanged(id: string, changeInfo: any) {
-    console.log('Bookmark changed:', id, changeInfo);
-    // 处理书签更改逻辑
-    loadBookmarks();
-    loadFolderTree();
-    loadAllBookmarks(); // 重新加载全部书签以更新搜索
-}
 
-function onChildrenReordered(id: string, reorderInfo: object) {
-    console.log('Children reordered for:', id, reorderInfo);
-    // 处理子项重排逻辑
-    loadBookmarks();
-}
-
-function onCreated(id: string, bookmark: BookmarkTreeNode) {
-    console.log('Bookmark created:', id, bookmark);
-    // 处理创建逻辑
-    loadBookmarks();
-    loadFolderTree();
-    loadAllBookmarks(); // 重新加载全部书签以更新搜索
-}
-
-function onImportBegan() {
-    console.log('Import began');
-    // 处理导入开始逻辑
-    ElMessage.info('开始导入书签...');
-}
-
-function onImportEnded() {
-    ElMessage.success(`成功导入书签`);
-    loadBookmarks();
-    loadFolderTree();
-    loadAllBookmarks(); // 重新加载全部书签以更新搜索
-}
-
-function onMoved(id: string, moveInfo: object) {
-    console.log('Bookmark moved:', moveInfo);
-    // 处理移动逻辑
-    loadBookmarks();
-    loadFolderTree();
-    loadAllBookmarks(); // 重新加载全部书签以更新搜索
-}
 
 async function onRemoved(id: string, removeInfo: object) {
     await bookmarkDB.remove(id);
